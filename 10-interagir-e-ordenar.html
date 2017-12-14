@@ -42,9 +42,6 @@
     </div>
 
     <style>
-      .mychart rect {
-        fill: #5A0B4D;
-      }
 
       .mychart text {
         font: 11px sans-serif;
@@ -69,7 +66,7 @@
 				margin: 0;
 				font-family: sans-serif;
 				font-size: 12px;
-				line-height: 20px;
+				line-height: 20px;  
 			}
     </style>
 
@@ -116,6 +113,10 @@
           var escalaLargura = d3.scaleLinear()
                     .domain([0, d3.max(dados, d => d[dimensaoSelecionada])])
                     .rangeRound([0, larguraMaxBarras]);
+            
+          var color = d3.scaleQuantize()
+                        .domain([0, d3.max(dados, d => d[dimensaoSelecionada])])
+                        .range(colorbrewer.Reds[5]);
 
           /*
            * Desenho inicial
@@ -129,6 +130,7 @@
               .attr("y", d => y(d.nome_curto))
               .attr("height", y.bandwidth())
               .attr("class", "depto")
+              .attr("fill", d => color(d[dimensaoSelecionada]))
 
           grafico.selectAll("text")
             .data(dados)
@@ -146,6 +148,9 @@
             d3.selectAll("text")
               .style("font-weight",
                       p => p.nome_curto === d.nome_curto ? "bold" : "normal");
+              
+            d3.selectAll("rect")
+              .style("fill", p => p.nome_curto === d.nome_curto  ? "#f4df42" : d => color(d[dimensaoSelecionada]));
 
             d3.select("#tooltip") // reparou que tem uma div escondida no html?
   						.style("left", (d3.event.pageX - 50) + "px")
@@ -162,6 +167,9 @@
           function mouseSaiu(d){
             d3.selectAll("text")
               .style("font-weight", "normal");
+              
+            d3.selectAll("rect")
+              .style("fill", d => color(d[dimensaoSelecionada]));
 
             // não precisamos mais de tooltip
             d3.select("#tooltip").classed("hidden", true);
@@ -182,16 +190,17 @@
           function mudaDimensaoEReordena(dimensao) {
             dimensaoSelecionada = dimensao
             // necessario para reordenar as barras/nomes
-            // var nomesOrdenados = dados.map(d => d.nome_curto)
-            //                           .sort((a, b) => d3.ascending(a[dimensao], b[dimensao]))
-            // y.domain(nomesOrdenados)
+             var nomesOrdenados = dados.map(d => d.nome_curto)
+                                       .sort((a, b) => d3.ascending(a[dimensao], b[dimensao]))
+             y.domain(nomesOrdenados)
 
-            var maxValue = d3.max(dados, d => parseFloat(d[dimensao]))
+            var maxValue = d3.max(dados, d => parseFloat(d[dimensao]));
 
-            escalaLargura = escalaLargura.domain([0, maxValue])
+            escalaLargura = escalaLargura.domain([0, maxValue]);
+            color = color.domain([0, maxValue]);
 
             grafico.selectAll("rect")
-              //.sort((a, b) => b[dimensao] - a[dimensao]) // necessario na hora de reordenar os retângulos
+              .sort((a, b) => b[dimensao] - a[dimensao]) // necessario na hora de reordenar os retângulos
               .transition().duration(300).delay((d,i) => i * 20)
               .attr("width", d => escalaLargura(d[dimensao]))
 
