@@ -66,7 +66,7 @@
 				margin: 0;
 				font-family: sans-serif;
 				font-size: 12px;
-				line-height: 20px;  
+				line-height: 20px;
 			}
     </style>
 
@@ -113,7 +113,7 @@
           var escalaLargura = d3.scaleLinear()
                     .domain([0, d3.max(dados, d => d[dimensaoSelecionada])])
                     .rangeRound([0, larguraMaxBarras]);
-            
+
           var color = d3.scaleQuantize()
                         .domain([0, d3.max(dados, d => d[dimensaoSelecionada])])
                         .range(colorbrewer.Reds[5]);
@@ -148,7 +148,7 @@
             d3.selectAll("text")
               .style("font-weight",
                       p => p.nome_curto === d.nome_curto ? "bold" : "normal");
-              
+
             d3.selectAll("rect")
               .style("fill", p => p.nome_curto === d.nome_curto  ? "#f4df42" : d => color(d[dimensaoSelecionada]));
 
@@ -167,7 +167,7 @@
           function mouseSaiu(d){
             d3.selectAll("text")
               .style("font-weight", "normal");
-              
+
             d3.selectAll("rect")
               .style("fill", d => color(d[dimensaoSelecionada]));
 
@@ -190,9 +190,9 @@
           function mudaDimensaoEReordena(dimensao) {
             dimensaoSelecionada = dimensao
             // necessario para reordenar as barras/nomes
-             var nomesOrdenados = dados.map(d => d.nome_curto)
-                                       .sort((a, b) => d3.ascending(a[dimensao], b[dimensao]))
-             y.domain(nomesOrdenados)
+             var nomesOrdenados = dados.sort((a, b) => d3.ascending(a[dimensao], b[dimensao]))
+                                       .map(d => d.nome_curto);
+            y.domain(nomesOrdenados)
 
             var maxValue = d3.max(dados, d => parseFloat(d[dimensao]));
 
@@ -203,6 +203,17 @@
               .sort((a, b) => b[dimensao] - a[dimensao]) // necessario na hora de reordenar os retângulos
               .transition().duration(300).delay((d,i) => i * 20)
               .attr("width", d => escalaLargura(d[dimensao]))
+              .attr("fill", d => color(d[dimensao]))
+              .attr("y", d => y(d.nome_curto))
+
+            grafico.selectAll("text")
+              .transition().duration(300).delay((d,i) => i * 0)
+              .attr("y", d => y(d.nome_curto) + y.bandwidth()/2 + 2)
+              .attr("x", larguraTexto - 10)
+              .text(d => d.nome_curto)
+
+            d3.selectAll("rect")
+              .style("fill", d => color(d[dimensaoSelecionada]));
 
           }
         }
